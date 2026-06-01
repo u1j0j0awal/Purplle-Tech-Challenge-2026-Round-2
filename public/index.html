@@ -3,325 +3,640 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Store Intelligence - live</title>
+  <title>StorePulse AI | Purplle Store Intelligence</title>
   <style>
     :root {
-      --bg: #0b0f12;
-      --panel: #11141c;
-      --panel-2: #171c26;
-      --line: #6b6257;
-      --text: #f7f4ef;
-      --muted: #b8aa94;
-      --green: #42e6a4;
-      --blue: #5aa8ff;
-      --amber: #ffc247;
-      --cyan: #52c7ff;
-      --red: #a20f31;
+      --bg: #f4f7fb;
+      --ink: #172033;
+      --muted: #657086;
+      --card: #ffffff;
+      --line: #dbe3ef;
+      --teal: #0f9f8f;
+      --blue: #2866d6;
+      --coral: #eb6a5b;
+      --gold: #c69321;
+      --violet: #6849c6;
+      --shadow: 0 18px 45px rgba(24, 38, 64, .09);
     }
+
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
-      background: var(--bg);
-      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(104, 73, 198, .10), transparent 34rem),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      color: var(--ink);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       letter-spacing: 0;
     }
-    main { max-width: 1690px; margin: 0 auto; padding: 28px 34px 36px; }
-    .topbar { display: flex; justify-content: space-between; gap: 24px; align-items: flex-start; }
-    .brand { font-size: 32px; font-weight: 850; line-height: 1.05; }
-    .subtitle { color: var(--muted); font-size: 16px; margin-top: 6px; }
-    .status { text-align: right; color: var(--text); font-size: 15px; }
-    .dot { display: inline-block; width: 10px; height: 10px; border-radius: 99px; background: #28c7a2; margin-right: 7px; }
+
+    main { max-width: 1500px; margin: 0 auto; padding: 26px 28px 38px; }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .side {
+      position: sticky;
+      top: 22px;
+      background: #111827;
+      color: #f9fbff;
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+      min-height: calc(100vh - 52px);
+    }
+
+    .brand {
+      font-size: 28px;
+      font-weight: 850;
+      line-height: 1.05;
+      margin-bottom: 8px;
+    }
+
+    .brand span { color: #7dd3c7; }
+
+    .side-note {
+      color: #b9c2d3;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+
+    .nav-pill {
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 12px;
+      padding: 13px 14px;
+      margin: 10px 0;
+      background: rgba(255,255,255,.05);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .nav-pill strong { font-size: 15px; }
+    .nav-pill small { color: #b9c2d3; }
+
+    .live-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+      background: #40e6ad;
+      margin-right: 7px;
+      box-shadow: 0 0 0 6px rgba(64,230,173,.11);
+    }
+
+    .mode-card {
+      margin-top: 24px;
+      background: #0b1220;
+      border-radius: 14px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+    }
+
+    .speed-row { display: flex; gap: 8px; margin-top: 12px; }
+    .speed { border: 1px solid rgba(255,255,255,.18); border-radius: 8px; padding: 7px 11px; color: #dbeafe; }
+    .speed.active { background: var(--teal); border-color: var(--teal); color: white; }
+
+    .top {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: start;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 42px;
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    .sub {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .status-bar {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      min-width: 290px;
+      box-shadow: var(--shadow);
+    }
+
+    .status-bar b { color: var(--teal); }
     select {
-      margin-left: 16px; background: #12161f; color: var(--text); border: 1px solid var(--line);
-      border-radius: 5px; padding: 8px 14px; font-size: 16px;
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #f9fbff;
+      color: var(--ink);
+      font-size: 15px;
     }
-    .sim-strip {
-      border: 1px solid var(--line); border-radius: 14px; background: var(--panel);
-      padding: 16px; margin: 22px 0; display: flex; justify-content: space-between; align-items: center;
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 18px;
     }
-    .btn { border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); padding: 7px 12px; margin-left: 7px; }
-    .btn.active { background: #1f8a70; border-color: #1faa8a; }
-    .stop { background: var(--red); border-color: var(--red); font-weight: 700; }
-    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+
     .kpi {
-      border: 1px solid var(--line); border-radius: 14px; background: var(--panel);
-      padding: 22px; min-height: 112px;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      min-height: 132px;
+      position: relative;
+      overflow: hidden;
     }
-    .kpi-label { color: #d6c7ad; font-size: 14px; letter-spacing: .06em; text-transform: uppercase; }
-    .kpi-value { color: var(--green); font-size: 38px; font-weight: 850; margin-top: 8px; }
-    .kpi-value.blue { color: var(--blue); }
-    .layout { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-top: 20px; align-items: start; }
-    .panel { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); padding: 20px; margin-bottom: 20px; }
-    .kicker { color: #d6c7ad; letter-spacing: .06em; text-transform: uppercase; font-size: 13px; }
-    h2, h3 { margin: 6px 0 14px; }
-    .cv-grid { display: grid; grid-template-columns: 2.45fr 1fr; gap: 18px; }
-    .camera-box {
-      height: 424px; border: 1px solid var(--line); border-radius: 9px; position: relative; overflow: hidden;
+
+    .kpi:after {
+      content: "";
+      position: absolute;
+      right: -36px;
+      top: -36px;
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      background: rgba(15,159,143,.08);
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 750;
+    }
+
+    .value {
+      margin-top: 10px;
+      font-size: 38px;
+      font-weight: 850;
+      color: var(--ink);
+    }
+
+    .trend {
+      margin-top: 8px;
+      font-size: 13px;
+      color: var(--teal);
+      font-weight: 700;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1.45fr .9fr;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: start;
+      margin-bottom: 16px;
+    }
+
+    h2, h3 { margin: 0; letter-spacing: 0; }
+    h2 { font-size: 25px; }
+    h3 { font-size: 19px; }
+
+    .small { color: var(--muted); font-size: 14px; }
+
+    .floor {
+      height: 430px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
       background:
-        linear-gradient(90deg, rgba(87,199,255,.13) 1px, transparent 1px),
-        linear-gradient(rgba(126,227,155,.09) 1px, transparent 1px), #020404;
-      background-size: 54px 54px;
+        linear-gradient(90deg, rgba(40,102,214,.08) 1px, transparent 1px),
+        linear-gradient(rgba(40,102,214,.08) 1px, transparent 1px),
+        #fbfdff;
+      background-size: 52px 52px;
+      position: relative;
+      overflow: hidden;
     }
-    .live-label { position: absolute; left: 20px; top: 18px; font-weight: 800; }
-    .synthetic { position: absolute; right: 20px; top: 18px; color: var(--green); font-weight: 800; }
-    .threshold { position: absolute; left: 9%; right: 9%; top: 63%; border-top: 2px dashed #7ee39b; }
+
+    .zone-block {
+      position: absolute;
+      border: 2px solid rgba(23,32,51,.16);
+      border-radius: 16px;
+      background: rgba(255,255,255,.72);
+      padding: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .zone-a { left: 5%; top: 8%; width: 37%; height: 28%; }
+    .zone-b { right: 6%; top: 9%; width: 42%; height: 32%; }
+    .zone-c { left: 7%; bottom: 10%; width: 46%; height: 31%; }
+    .zone-d { right: 8%; bottom: 12%; width: 31%; height: 30%; }
+
+    .entry-line {
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      top: 52%;
+      border-top: 3px dashed var(--teal);
+    }
+
     .person {
-      position: absolute; width: 58px; height: 98px; border: 2px solid var(--cyan); border-radius: 8px;
-      background: rgba(82,199,255,.13); color: #e5fbff; padding: 6px; font-size: 12px; transition: all .6s ease;
+      position: absolute;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 850;
+      border: 4px solid white;
+      box-shadow: 0 10px 22px rgba(40,102,214,.28);
+      transition: all .7s ease;
     }
-    .model-row { display: grid; grid-template-columns: 1fr 1.2fr; gap: 8px; margin: 9px 0; }
-    .muted { color: var(--muted); }
-    .mono { font-family: Consolas, "Courier New", monospace; }
-    .telemetry { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin: 16px 0; }
-    .tele-card { border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); padding: 10px; }
-    .tele-card small { color: var(--muted); text-transform: uppercase; }
-    .tele-card b { display: block; color: var(--blue); margin-top: 4px; }
-    .overlay { border: 1px solid var(--line); border-radius: 5px; padding: 7px 10px; margin-top: 8px; display: flex; justify-content: space-between; }
-    .camera-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 18px; }
-    .cam-card { border: 1px solid var(--line); border-radius: 9px; background: var(--panel-2); padding: 13px; min-height: 88px; }
-    .cam-card.active { border-color: #1faa8a; }
-    .note { color: var(--muted); margin-top: 12px; font-size: 14px; line-height: 1.55; }
-    .queue-svg { width: 100%; height: 190px; border-radius: 10px; background: var(--panel); }
-    .right-head { display: flex; justify-content: space-between; align-items: center; }
-    .right-number { color: var(--green); font-size: 30px; font-weight: 850; }
+
+    .person.staff { background: var(--gold); }
+    .person.billing { background: var(--coral); }
+
+    .camera-tag {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      border-radius: 999px;
+      padding: 7px 11px;
+      background: #102033;
+      color: white;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .funnel {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stage {
+      display: grid;
+      grid-template-columns: 150px 1fr 70px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .bar-bg {
+      height: 20px;
+      border-radius: 999px;
+      background: #e9eef7;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--blue), var(--teal));
+    }
+
+    .heat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .heat {
+      border-radius: 16px;
+      padding: 15px;
+      min-height: 112px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .heat:after {
+      content: "";
+      position: absolute;
+      width: 90px;
+      height: 90px;
+      right: -28px;
+      bottom: -28px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.16);
+    }
+
+    .heat b { font-size: 30px; display: block; margin: 6px 0; }
+
+    .queue-svg {
+      width: 100%;
+      height: 220px;
+      border-radius: 16px;
+      background: #f9fbff;
+      border: 1px solid var(--line);
+    }
+
     .ticker {
-      height: 276px; overflow: hidden; border: 1px solid var(--line); border-radius: 10px;
-      background: #070a0e; padding: 12px 14px; font-family: Consolas, monospace; font-size: 14px; line-height: 1.65;
+      height: 270px;
+      overflow: hidden;
+      background: #111827;
+      border-radius: 16px;
+      padding: 14px 16px;
+      color: #dbeafe;
+      font-family: Consolas, "Courier New", monospace;
+      line-height: 1.65;
+      font-size: 13px;
     }
-    .event-entry { color: var(--green); }
-    .event-exit { color: var(--amber); }
-    .event-zone { color: var(--cyan); }
-    .event-bill { color: #ff9f57; }
-    .funnel-row { display: grid; grid-template-columns: 170px 1fr 82px; gap: 12px; align-items: center; margin: 12px 0; }
-    .bar-wrap { height: 35px; border-radius: 5px; background: #1a1f2a; overflow: hidden; }
-    .bar { height: 100%; background: #26836e; display: flex; align-items: center; padding-left: 14px; font-weight: 800; }
-    .heat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .zone { border: 1px solid rgba(255,255,255,.15); border-radius: 9px; padding: 14px 16px; min-height: 112px; }
-    .zone h3 { margin: 5px 0; font-size: 32px; }
-    .timeline { border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); padding: 14px; margin-bottom: 12px; }
-    .chip { display: inline-block; border: 1px solid var(--line); border-radius: 5px; padding: 4px 9px; margin: 8px 5px 0 0; font-size: 12px; }
-    footer { color: var(--muted); margin-top: 16px; font-size: 14px; }
-    @media (max-width: 1000px) {
-      main { padding: 18px; }
-      .grid-4, .layout, .cv-grid, .camera-strip, .heat-grid { grid-template-columns: 1fr; }
-      .topbar, .sim-strip { flex-direction: column; }
-      .status { text-align: left; }
+
+    .event-entry { color: #67e8a5; }
+    .event-exit { color: #fbbf24; }
+    .event-zone { color: #7dd3fc; }
+    .event-bill { color: #fb8a75; }
+
+    .timeline {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      background: #fbfdff;
+      margin-bottom: 10px;
+    }
+
+    .chip {
+      display: inline-block;
+      border-radius: 999px;
+      background: #eef4ff;
+      color: var(--blue);
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 800;
+      margin: 8px 5px 0 0;
+    }
+
+    .ops {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .mini {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      background: #fbfdff;
+    }
+
+    footer { color: var(--muted); font-size: 13px; margin-top: 14px; }
+
+    @media (max-width: 1100px) {
+      main { padding: 16px; }
+      .shell, .top, .kpis, .content-grid, .heat-grid, .ops { grid-template-columns: 1fr; }
+      .side { position: relative; min-height: auto; }
     }
   </style>
 </head>
 <body>
-  <main>
-    <section class="topbar">
-      <div>
-        <div class="brand">Store Intelligence - live</div>
-        <div class="subtitle">Real-time analytics for offline retail. Polls every 3s plus event stream.</div>
-      </div>
-      <div class="status">
-        <span class="dot"></span><span id="status">Ok</span> <span class="muted">- uptime <span id="uptime">0</span>s</span>
-        <select aria-label="Store selector"><option>STORE_BLR_002</option></select>
-      </div>
-    </section>
+  <main class="shell">
+    <aside class="side">
+      <div class="brand">StorePulse <span>AI</span></div>
+      <div class="side-note">AI-powered store intelligence from CCTV events and POS correlation.</div>
 
-    <section class="sim-strip">
-      <div>Simulation: <span class="muted">running @ <span id="speed-label">2x</span></span>
-        <span class="btn">1x</span><span class="btn active">2x</span><span class="btn">5x</span><span class="btn stop">Stop</span>
+      <div class="nav-pill"><div><strong>Live Status</strong><br><small><span class="live-dot"></span>Healthy stream</small></div><strong id="uptime">0s</strong></div>
+      <div class="nav-pill"><div><strong>Store</strong><br><small>Brigade Bangalore</small></div><strong>BLR</strong></div>
+      <div class="nav-pill"><div><strong>Cameras</strong><br><small>Entry, floor, billing</small></div><strong>5</strong></div>
+
+      <div class="mode-card">
+        <strong>Demo Mode</strong>
+        <div class="side-note" style="margin:8px 0 0;">Generated telemetry mirrors the implemented API event schema.</div>
+        <div class="speed-row"><span class="speed">1x</span><span class="speed active">2x</span><span class="speed">5x</span></div>
       </div>
-      <div class="muted">YOLOv8n synthetic CV + event stream replay</div>
-    </section>
+    </aside>
 
-    <section class="grid-4">
-      <div class="kpi"><div class="kpi-label">Unique visitors today</div><div class="kpi-value blue" id="visitors">64</div></div>
-      <div class="kpi"><div class="kpi-label">Conversion rate</div><div class="kpi-value" id="conversion">104.1%</div></div>
-      <div class="kpi"><div class="kpi-label">Queue depth now</div><div class="kpi-value" id="queue-now">5</div></div>
-      <div class="kpi"><div class="kpi-label">Abandonment</div><div class="kpi-value" id="abandonment">0.0%</div></div>
-    </section>
+    <section>
+      <div class="top">
+        <div>
+          <h1>Purplle Store Intelligence</h1>
+          <div class="sub">Conversion, queue pressure, zone attention, and visitor journeys in one operating view.</div>
+        </div>
+        <div class="status-bar">
+          <div><span class="live-dot"></span><b>Live prototype</b> · synthetic CCTV replay</div>
+          <select aria-label="Store"><option>STORE_BLR_002</option></select>
+        </div>
+      </div>
 
-    <section class="layout">
-      <div>
-        <section class="panel">
-          <div class="kicker">YOLOv8 Live CV Stream</div>
-          <h2>Main Entrance <span class="muted">(CAM_1)</span></h2>
-          <div class="cv-grid">
-            <div class="camera-box" id="camera-box">
-              <div class="live-label"><span class="dot" style="background:#a97900"></span> LIVE (SYNTHETIC)</div>
-              <div class="synthetic">LIVE SYNTHETIC CV</div>
-              <div class="threshold"></div>
+      <section class="kpis">
+        <div class="kpi"><div class="label">Visitors today</div><div class="value" id="visitors">64</div><div class="trend">updated from entry events</div></div>
+        <div class="kpi"><div class="label">Conversion rate</div><div class="value" id="conversion">72.2%</div><div class="trend">POS matched sessions</div></div>
+        <div class="kpi"><div class="label">Queue depth</div><div class="value" id="queue">4</div><div class="trend">billing camera</div></div>
+        <div class="kpi"><div class="label">Revenue estimate</div><div class="value" id="revenue">INR 59k</div><div class="trend">from correlated purchases</div></div>
+      </section>
+
+      <section class="content-grid">
+        <div>
+          <section class="card">
+            <div class="card-head">
+              <div><h2>Live Store Map</h2><div class="small">Person tracks, zone polygons and entry threshold rendered from the event stream.</div></div>
+              <div class="small"><b>YOLOv8n</b> + ByteTrack-IoU</div>
             </div>
-            <div>
-              <div class="kicker">Model</div>
-              <div class="model-row"><div class="muted">Detector</div><b>YOLOv8n</b></div>
-              <div class="model-row"><div class="muted">Tracker</div><b>ByteTrack-IoU</b></div>
-              <div class="model-row"><div class="muted">Classes</div><b class="mono">Person [class_id: 0]</b></div>
-              <div class="model-row"><div class="muted">Hardware</div><b>CPU inference</b></div>
-              <div class="kicker" style="margin-top:18px">Telemetry</div>
-              <div class="telemetry">
-                <div class="tele-card"><small>Mode</small><b>SIM</b></div>
-                <div class="tele-card"><small>Speed</small><b>2x</b></div>
-                <div class="tele-card"><small>Source</small><b>Drawn</b></div>
-                <div class="tele-card"><small>Frames</small><b id="frames">--</b></div>
-              </div>
-              <div class="note">native: 30.0 fps</div>
-              <div class="kicker" style="margin-top:18px">Active overlays (2)</div>
-              <div class="overlay"><span><span class="dot"></span>Entry Threshold</span><span class="muted">LINE</span></div>
-              <div class="overlay"><span><span class="dot" style="background:#2d7cd3"></span>Entry Crossing Line</span><span class="muted">LINE</span></div>
+            <div class="floor" id="floor">
+              <div class="zone-block zone-a">MAKEUP</div>
+              <div class="zone-block zone-b">SKINCARE</div>
+              <div class="zone-block zone-c">PROMO DISPLAY</div>
+              <div class="zone-block zone-d">BILLING</div>
+              <div class="entry-line"></div>
+              <div class="camera-tag">CAM_ENTRY_01</div>
             </div>
-          </div>
-          <div class="camera-strip">
-            <div class="cam-card active"><div class="muted">ENTRY</div><b>Main Entrance</b><br><span class="muted">CAM_1</span></div>
-            <div class="cam-card"><div class="muted">FLOOR</div><b>Main Floor</b><br><span class="muted">CAM_2</span></div>
-            <div class="cam-card"><div class="muted">FLOOR</div><b>Secondary Floor</b><br><span class="muted">CAM_3</span></div>
-            <div class="cam-card"><div class="muted">BILLING</div><b>Billing Counter</b><br><span class="muted">CAM_4</span></div>
-            <div class="cam-card"><div class="muted">BILLING</div><b>Billing Queue</b><br><span class="muted">CAM_5</span></div>
-          </div>
-          <div class="note">Synthetic frames with bounding boxes, zone polygons and HUD. The repo runs in this mode by default; drop licensed clips into data/clips and detections into data/detections to switch to real CCTV.</div>
-        </section>
+          </section>
 
-        <section class="panel">
-          <h3>Conversion funnel</h3>
-          <div id="funnel"></div>
-        </section>
+          <section class="card">
+            <h2>Conversion Funnel</h2>
+            <div class="funnel" id="funnel"></div>
+          </section>
 
-        <section class="panel">
-          <h3>Zone heatmap</h3>
-          <div class="heat-grid" id="heatmap"></div>
-        </section>
-      </div>
+          <section class="card">
+            <h2>Zone Attention Matrix</h2>
+            <div class="heat-grid" id="heatmap"></div>
+          </section>
+        </div>
 
-      <aside>
-        <section class="panel">
-          <div class="right-head"><div class="kicker">Queue depth</div><div class="right-number" id="queue-right">5</div></div>
-          <svg class="queue-svg" viewBox="0 0 470 190">
-            <line x1="24" y1="155" x2="446" y2="155" stroke="#6b6257" stroke-width="1"/>
-            <polyline id="queue-line" points="" fill="none" stroke="#36d9a7" stroke-width="3"/>
-          </svg>
-          <div class="note">rolling 60-sample window - critical at 6+</div>
-        </section>
-        <section class="panel">
-          <h3>Active anomalies</h3>
-          <p style="color:var(--green)">No active anomalies.</p>
-        </section>
-        <section class="panel">
-          <h3>Live event ticker (SSE)</h3>
-          <div class="ticker" id="ticker"></div>
-        </section>
-        <section class="panel">
-          <h3>Visitor timelines</h3>
-          <div id="timelines"></div>
-        </section>
-      </aside>
+        <aside>
+          <section class="card">
+            <div class="card-head"><h2>Queue Signal</h2><strong id="queue-big" style="color:var(--teal);font-size:30px;">4</strong></div>
+            <svg class="queue-svg" viewBox="0 0 470 220">
+              <line x1="24" y1="170" x2="446" y2="170" stroke="#cbd5e1" stroke-width="1" />
+              <polyline id="queue-line" points="" fill="none" stroke="#0f9f8f" stroke-width="4" />
+            </svg>
+            <div class="small">Rolling operational queue depth. Alert threshold: 6+</div>
+          </section>
+
+          <section class="card">
+            <h2>Operations</h2>
+            <div class="ops">
+              <div class="mini"><div class="label">Avg confidence</div><div class="value" style="font-size:28px;">0.82</div></div>
+              <div class="mini"><div class="label">Re-entries</div><div class="value" style="font-size:28px;" id="reentries">3</div></div>
+            </div>
+            <p style="color:var(--teal);font-weight:800;">No active operational anomalies.</p>
+          </section>
+
+          <section class="card">
+            <h2>Event Stream</h2>
+            <div class="ticker" id="ticker"></div>
+          </section>
+
+          <section class="card">
+            <h2>Visitor Journeys</h2>
+            <div id="timelines"></div>
+          </section>
+        </aside>
+      </section>
+      <footer>Demo uses generated telemetry for public hosting. Repository includes FastAPI ingestion, metrics endpoints, YOLO pipeline, tests, DESIGN.md and CHOICES.md.</footer>
     </section>
-    <footer>API: https://purplle-tech-challenge-2026-production.up.railway.app &nbsp;&nbsp; Store: STORE_BLR_002 &nbsp;&nbsp; Cameras: CAM_1, CAM_2, CAM_3, CAM_4, CAM_5</footer>
   </main>
 
   <script>
-    const zones = ["BODYCARE", "FRAGRANCE", "HAIRCARE", "MAKEUP", "MOISTURISER", "SKINCARE"];
+    const zones = ["MAKEUP", "SKINCARE", "FRAGRANCE", "HAIRCARE", "BODYCARE", "MOISTURISER"];
     const eventTypes = ["ENTRY", "ZONE_ENTER", "ZONE_DWELL", "BILLING_QUEUE_JOIN", "EXIT"];
     let tick = 0;
     let events = [];
 
-    function q(sel) { return document.querySelector(sel); }
-    function clsFor(kind) {
+    const q = (selector) => document.querySelector(selector);
+
+    function eventClass(kind) {
       if (kind.includes("BILLING")) return "event-bill";
       if (kind.includes("ENTRY")) return "event-entry";
       if (kind.includes("EXIT")) return "event-exit";
       return "event-zone";
     }
-    function renderPeople() {
-      const box = q("#camera-box");
-      box.querySelectorAll(".person").forEach(n => n.remove());
-      for (let i = 0; i < 5; i++) {
+
+    function drawPeople() {
+      const floor = q("#floor");
+      floor.querySelectorAll(".person").forEach((node) => node.remove());
+      for (let i = 0; i < 7; i++) {
         const p = document.createElement("div");
-        p.className = "person";
-        const x = 10 + ((tick * (i + 2) + i * 16) % 76);
-        const y = 18 + ((tick * (i + 3) + i * 13) % 58);
-        p.style.left = x + "%";
-        p.style.top = y + "%";
-        p.innerHTML = `VIS<br>${i + 1}`;
-        box.appendChild(p);
+        const role = i === 5 ? "staff" : i > 4 ? "billing" : "";
+        p.className = `person ${role}`;
+        p.style.left = `${8 + ((tick * (i + 2) + i * 13) % 78)}%`;
+        p.style.top = `${10 + ((tick * (i + 3) + i * 9) % 70)}%`;
+        p.textContent = i + 1;
+        floor.appendChild(p);
       }
     }
-    function renderFunnel(visitors, billing, purchases) {
+
+    function drawFunnel(visitors, billing, purchases) {
       const rows = [
-        ["1. Entry", visitors, 0],
-        ["2. Zone Visit", visitors - (tick % 2), -0.8],
-        ["3. Billing Queue", billing, -25.2],
-        ["4. Purchase", purchases, -0.0],
+        ["Entry", visitors],
+        ["Zone visit", visitors - (tick % 3)],
+        ["Billing intent", billing],
+        ["Purchase", purchases],
       ];
-      const max = visitors || 1;
-      q("#funnel").innerHTML = rows.map(([label, value, drop]) => `
-        <div class="funnel-row">
-          <div>${label}</div>
-          <div class="bar-wrap"><div class="bar" style="width:${Math.max(8, value / max * 100)}%">${value}</div></div>
-          <div class="muted">${drop ? drop.toFixed(1) + "%" : "--"}</div>
-        </div>`).join("");
+      const max = Math.max(visitors, 1);
+      q("#funnel").innerHTML = rows.map(([label, value]) => `
+        <div class="stage">
+          <strong>${label}</strong>
+          <div class="bar-bg"><div class="bar-fill" style="width:${Math.max(8, value / max * 100)}%"></div></div>
+          <strong>${value}</strong>
+        </div>
+      `).join("");
     }
-    function renderHeatmap(visitors) {
-      q("#heatmap").innerHTML = zones.map((z, i) => {
-        const score = 78 + ((tick * 4 + i * 9) % 23);
-        const visits = Math.max(1, Math.round(visitors * (0.42 + i * .025)));
-        const color = score > 91 ? "#9f1d24" : score > 84 ? "#a5521d" : "#1f8a70";
-        return `<div class="zone" style="background:${color}">
-          <div class="muted">${z}</div><h3>${score}</h3>
-          <div>visits ${visits} - dwell ${10 + (tick + i) % 8}.0s</div>
+
+    function drawHeatmap(visitors) {
+      q("#heatmap").innerHTML = zones.map((zone, index) => {
+        const score = 62 + ((tick * 5 + index * 8) % 39);
+        const visits = Math.round(visitors * (0.32 + index * .035));
+        const dwell = 8 + ((tick + index * 2) % 12);
+        const color = score > 88 ? "#d95f4f" : score > 76 ? "#d69a2d" : "#0f9f8f";
+        return `<div class="heat" style="background:${color}">
+          <span>${zone}</span><b>${score}</b><small>visits ${visits} · dwell ${dwell}s</small>
         </div>`;
       }).join("");
     }
-    function renderQueue(queue) {
-      const series = Array.from({length: 30}, (_, i) => Math.max(0, queue + Math.round(Math.sin((tick + i) / 2) * 2) - 1));
+
+    function drawQueue(queue) {
+      const series = Array.from({ length: 34 }, (_, i) => Math.max(0, queue + Math.round(Math.sin((tick + i) / 2.2) * 2) - 1));
       const max = Math.max(6, ...series);
-      const points = series.map((v, i) => {
-        const x = 24 + i * (420 / Math.max(series.length - 1, 1));
-        const y = 155 - (v / max) * 118;
+      const points = series.map((value, index) => {
+        const x = 24 + index * (420 / Math.max(series.length - 1, 1));
+        const y = 170 - (value / max) * 130;
         return `${x.toFixed(1)},${y.toFixed(1)}`;
       }).join(" ");
       q("#queue-line").setAttribute("points", points);
     }
+
     function addEvent() {
       const kind = eventTypes[tick % eventTypes.length];
       const zone = ["ENTRY", "EXIT"].includes(kind) ? "" : zones[tick % zones.length];
-      const id = `VIS_sim${String(1000 + tick).padStart(4, "0")}`;
-      events.unshift({ time: new Date().toLocaleTimeString("en-IN", { hour12: false }), kind, zone, id, camera: kind.includes("ENTRY") || kind === "EXIT" ? "CAM_ENTRY_01" : "CAM_FLOOR_01" });
-      events = events.slice(0, 60);
+      const id = `VIS_${String(1000 + tick).padStart(4, "0")}`;
+      events.unshift({
+        time: new Date().toLocaleTimeString("en-IN", { hour12: false }),
+        kind,
+        zone,
+        id,
+        camera: kind.includes("ENTRY") || kind === "EXIT" ? "CAM_ENTRY_01" : "CAM_FLOOR_01",
+      });
+      events = events.slice(0, 70);
     }
-    function renderTicker() {
-      q("#ticker").innerHTML = events.slice(0, 18).map(e => {
-        const zone = e.zone ? ` @${e.zone}` : "";
-        return `<div>${e.time} <span class="${clsFor(e.kind)}">${e.kind}</span> ${e.id}${zone} [${e.camera}]</div>`;
+
+    function drawTicker() {
+      q("#ticker").innerHTML = events.slice(0, 16).map((event) => {
+        const zone = event.zone ? ` @${event.zone}` : "";
+        return `<div>${event.time} <span class="${eventClass(event.kind)}">${event.kind}</span> ${event.id}${zone} [${event.camera}]</div>`;
       }).join("");
     }
-    function renderTimelines() {
-      const byVisitor = {};
-      for (const e of events) {
-        byVisitor[e.id] ||= [];
-        if (byVisitor[e.id].length < 4) byVisitor[e.id].push(e.kind);
+
+    function drawTimelines() {
+      const grouped = {};
+      for (const event of events) {
+        grouped[event.id] ||= [];
+        if (grouped[event.id].length < 4) grouped[event.id].push(event.kind);
       }
-      q("#timelines").innerHTML = Object.entries(byVisitor).slice(0, 4).map(([id, kinds]) => `
-        <div class="timeline"><b>${id}</b><br>${kinds.map(k => `<span class="chip">${k}</span>`).join("")}</div>
+      q("#timelines").innerHTML = Object.entries(grouped).slice(0, 4).map(([id, kinds]) => `
+        <div class="timeline"><strong>${id}</strong><br>${kinds.map((kind) => `<span class="chip">${kind}</span>`).join("")}</div>
       `).join("");
     }
+
     function update() {
-      tick++;
-      const visitors = 86 + (tick % 48);
-      const billing = Math.round(visitors * 0.74);
-      const purchases = billing - (tick % 4);
-      const queue = 3 + (tick % 4);
-      q("#uptime").textContent = 76000 + tick * 3;
+      tick += 1;
+      const visitors = 82 + (tick % 46);
+      const billing = Math.round(visitors * 0.72);
+      const purchases = Math.max(1, billing - (tick % 5));
+      const queue = 2 + (tick % 5);
+      const revenue = purchases * 1240;
+
+      q("#uptime").textContent = `${76000 + tick * 3}s`;
       q("#visitors").textContent = visitors;
-      q("#conversion").textContent = ((purchases / visitors) * 100).toFixed(1) + "%";
-      q("#queue-now").textContent = queue;
-      q("#queue-right").textContent = queue;
-      q("#abandonment").textContent = (((billing - purchases) / billing) * 100).toFixed(1) + "%";
-      q("#frames").textContent = String(tick * 90);
-      renderPeople();
-      renderFunnel(visitors, billing, purchases);
-      renderHeatmap(visitors);
-      renderQueue(queue);
+      q("#conversion").textContent = `${((purchases / visitors) * 100).toFixed(1)}%`;
+      q("#queue").textContent = queue;
+      q("#queue-big").textContent = queue;
+      q("#revenue").textContent = `INR ${Math.round(revenue / 1000)}k`;
+      q("#reentries").textContent = 2 + (tick % 6);
+
+      drawPeople();
+      drawFunnel(visitors, billing, purchases);
+      drawHeatmap(visitors);
+      drawQueue(queue);
       addEvent();
-      renderTicker();
-      renderTimelines();
+      drawTicker();
+      drawTimelines();
     }
-    for (let i = 0; i < 14; i++) update();
+
+    for (let i = 0; i < 16; i++) update();
     setInterval(update, 3000);
   </script>
 </body>
