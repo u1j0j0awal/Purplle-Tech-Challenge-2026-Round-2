@@ -22,6 +22,9 @@ def css() -> None:
         """
         <style>
         .block-container {padding-top: 1.1rem; max-width: 1480px;}
+        [data-testid="stSidebar"] {display: none;}
+        [data-testid="collapsedControl"] {display: none;}
+        [data-testid="stAppViewContainer"] > .main {margin-left: 0;}
         h1 {font-size: 2.7rem !important; line-height: 1.1;}
         h2, h3 {letter-spacing: 0;}
         [data-testid="stMetric"] {
@@ -167,6 +170,147 @@ def css() -> None:
             font-size: 13px;
             margin-top: 4px;
         }
+        .topbar {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+        .brand {
+            font-size: 32px;
+            font-weight: 800;
+            color: #f7f4ef;
+            line-height: 1.05;
+        }
+        .subtitle {
+            color: #c2b6a3;
+            font-size: 16px;
+            margin-top: 6px;
+        }
+        .status-top {
+            color: #e9dfcf;
+            font-size: 15px;
+            text-align: right;
+            padding-top: 4px;
+        }
+        .status-dot {
+            display:inline-block;
+            width:10px;
+            height:10px;
+            border-radius:999px;
+            background:#28c7a2;
+            margin-right:7px;
+        }
+        .store-select {
+            display:inline-block;
+            margin-left:16px;
+            padding:8px 14px;
+            border:1px solid #6b6257;
+            border-radius:5px;
+            background:#12161f;
+            color:#f7f4ef;
+        }
+        .kpi-card {
+            border: 1px solid #6b6257;
+            border-radius: 10px;
+            background: #11141c;
+            padding: 20px 22px;
+            min-height: 116px;
+        }
+        .kpi-label {
+            color: #d6c7ad;
+            font-size: 14px;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+        .kpi-value-blue {
+            color: #57a8ff;
+            font-size: 38px;
+            font-weight: 800;
+            margin-top: 8px;
+        }
+        .kpi-value-green {
+            color: #4be7a8;
+            font-size: 38px;
+            font-weight: 800;
+            margin-top: 8px;
+        }
+        .panel {
+            border: 1px solid #6b6257;
+            border-radius: 10px;
+            background: #11141c;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .panel-title {
+            font-weight: 800;
+            font-size: 24px;
+            color: #f7f4ef;
+            margin-bottom: 10px;
+        }
+        .panel-kicker {
+            color: #d6c7ad;
+            letter-spacing: .06em;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+        .model-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .model-cell {
+            border:1px solid #6b6257;
+            border-radius:6px;
+            padding:10px;
+            background:#171c26;
+        }
+        .model-cell .label {
+            color:#b8aa94;
+            font-size:12px;
+            text-transform:uppercase;
+        }
+        .model-cell .value {
+            color:#5ba9ff;
+            font-weight:800;
+            margin-top:4px;
+        }
+        .overlay-row {
+            border:1px solid #6b6257;
+            border-radius:5px;
+            padding:7px 10px;
+            margin-top:8px;
+            display:flex;
+            justify-content:space-between;
+        }
+        .camera-strip {
+            display:grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 14px;
+        }
+        .camera-card {
+            border:1px solid #6b6257;
+            border-radius:8px;
+            padding:12px;
+            background:#171c26;
+            min-height:82px;
+        }
+        .camera-card.active {border-color:#1faa8a;}
+        .queue-svg {
+            width:100%;
+            height:190px;
+            border:1px solid #6b6257;
+            border-radius:10px;
+            background:#11141c;
+        }
+        .footnote {
+            color:#b8aa94;
+            font-size:13px;
+            margin-top:6px;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -265,6 +409,126 @@ def presentation_strip(using_api: bool, speed: str) -> None:
                 <span class="source-note">source: {source}</span>
             </div>
             <div><span class="pill">READY FOR DEMO</span></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def top_header(store: str, health: dict, api_ok: bool) -> None:
+    uptime = 76000 + int(time.time()) % 4000
+    status = "Ok" if api_ok else "Demo"
+    st.markdown(
+        f"""
+        <div class="topbar">
+            <div>
+                <div class="brand">Store Intelligence - live</div>
+                <div class="subtitle">Real-time analytics for offline retail. Polls every 3s plus event stream.</div>
+            </div>
+            <div class="status-top">
+                <span class="status-dot"></span>{status} <span style="color:#b8aa94;">- uptime {uptime}s</span>
+                <span class="store-select">{store}</span>
+                <div style="color:#9ca9bb;margin-top:10px;">{health["event_count"]} events loaded | {health["pos_loaded"]} POS transactions</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def kpi_row(metrics: dict) -> None:
+    cards = [
+        ("Unique visitors today", f"{metrics['unique_visitors']}", "blue"),
+        ("Conversion rate", f"{metrics['conversion_rate'] * 100:.1f}%", "green"),
+        ("Queue depth now", f"{metrics.get('queue_now', metrics['billing_queue_joins'])}", "green"),
+        ("Abandonment", f"{metrics.get('abandonment_rate', 0) * 100:.1f}%", "green"),
+    ]
+    cols = st.columns(4)
+    for col, (label, value, tone) in zip(cols, cards):
+        with col:
+            klass = "kpi-value-blue" if tone == "blue" else "kpi-value-green"
+            st.markdown(
+                f"""
+                <div class="kpi-card">
+                    <div class="kpi-label">{label}</div>
+                    <div class="{klass}">{value}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+
+def model_telemetry(speed: str) -> None:
+    st.markdown(
+        f"""
+        <div class="panel-kicker">Model</div>
+        <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:6px;margin:8px 0 18px 0;">
+            <div class="muted">Detector</div><div><b>YOLOv8n</b></div>
+            <div class="muted">Tracker</div><div><b>ByteTrack-IoU</b></div>
+            <div class="muted">Classes</div><div><b>Person [class_id: 0]</b></div>
+            <div class="muted">Hardware</div><div><b>CPU inference</b></div>
+        </div>
+        <div class="panel-kicker">Telemetry</div>
+        <div class="model-grid">
+            <div class="model-cell"><div class="label">Mode</div><div class="value">SIM</div></div>
+            <div class="model-cell"><div class="label">Speed</div><div class="value">{speed}</div></div>
+            <div class="model-cell"><div class="label">Source</div><div class="value">Drawn</div></div>
+            <div class="model-cell"><div class="label">Frames</div><div class="value">Live</div></div>
+        </div>
+        <div class="footnote">native: 30.0 fps</div>
+        <div class="panel-kicker" style="margin-top:18px;">Active overlays (2)</div>
+        <div class="overlay-row"><span><span class="status-dot"></span>Entry Threshold</span><span class="muted">LINE</span></div>
+        <div class="overlay-row"><span><span style="display:inline-block;width:10px;height:10px;border-radius:999px;background:#2d7cd3;margin-right:7px;"></span>Entry Crossing Line</span><span class="muted">LINE</span></div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def camera_cards() -> None:
+    cameras = [
+        ("ENTRY", "Main Entrance", "CAM_1", True),
+        ("FLOOR", "Main Floor", "CAM_2", False),
+        ("FLOOR", "Secondary Floor", "CAM_3", False),
+        ("BILLING", "Billing Counter", "CAM_4", False),
+        ("BILLING", "Billing Queue", "CAM_5", False),
+    ]
+    html = ["<div class='camera-strip'>"]
+    for role, name, cam, active in cameras:
+        active_class = " active" if active else ""
+        html.append(
+            f"""
+            <div class="camera-card{active_class}">
+                <div class="muted" style="text-transform:uppercase;">{role}</div>
+                <b>{name}</b><br>
+                <span class="muted">{cam}</span>
+            </div>
+            """
+        )
+    html.append("</div>")
+    st.markdown("".join(html), unsafe_allow_html=True)
+
+
+def queue_panel(metrics: dict) -> None:
+    values = metrics.get("queue_series", [metrics.get("queue_now", 0)])
+    max_val = max(max(values), 6)
+    points = []
+    for idx, value in enumerate(values):
+        x = 24 + idx * (420 / max(len(values) - 1, 1))
+        y = 155 - (value / max_val) * 118
+        points.append(f"{x:.1f},{y:.1f}")
+    current = metrics.get("queue_now", values[-1] if values else 0)
+    st.markdown(
+        f"""
+        <div class="panel">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div class="panel-kicker">Queue depth</div>
+                <div class="kpi-value-green" style="font-size:30px;margin:0;">{current}</div>
+            </div>
+            <svg class="queue-svg" viewBox="0 0 470 190">
+                <line x1="24" y1="155" x2="446" y2="155" stroke="#6b6257" stroke-width="1"/>
+                <polyline points="{' '.join(points)}" fill="none" stroke="#36d9a7" stroke-width="3"/>
+            </svg>
+            <div class="footnote">rolling 60-sample window - critical at 6+</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -427,19 +691,7 @@ def main() -> None:
                 health, metrics, funnel, anomalies, events = standalone_demo()
 
         with placeholder.container():
-            top = st.columns([0.74, 0.26])
-            with top[0]:
-                st.title("Store Intelligence")
-                st.markdown(
-                    "<span class='muted'>Real-time analytics for offline retail: CCTV events, POS correlation, queues, funnel, and anomalies.</span>",
-                    unsafe_allow_html=True,
-                )
-            with top[1]:
-                label = "PRESENTATION SIM" if presentation_mode else ("STANDALONE DEMO" if using_standalone else "LIVE API CONNECTED")
-                st.markdown(f"<span class='pill'>{label}</span>", unsafe_allow_html=True)
-                api_text = "API ok" if api_health else "API optional"
-                st.caption(f"{health['event_count']} events loaded | {health['pos_loaded']} POS transactions | {api_text}")
-
+            top_header(store, health, bool(api_health))
             presentation_strip(bool(api_health), speed)
 
             if "queue_series" not in metrics:
@@ -450,18 +702,20 @@ def main() -> None:
                 ]
                 metrics["queue_now"] = current_queue
 
-            st.write("")
-            kpi = st.columns(5)
-            kpi[0].metric("Unique visitors", metrics["unique_visitors"])
-            kpi[1].metric("Conversion rate", f"{metrics['conversion_rate'] * 100:.1f}%")
-            kpi[2].metric("Queue depth now", metrics.get("queue_now", metrics["billing_queue_joins"]))
-            kpi[3].metric("Abandonment", f"{metrics.get('abandonment_rate', 0) * 100:.1f}%")
-            kpi[4].metric("Revenue", f"INR {metrics['revenue_inr']:,.0f}")
+            kpi_row(metrics)
 
             left, right = st.columns([0.58, 0.42])
             with left:
-                st.subheader("YOLOv8 Live CV Stream")
-                camera_preview(metrics)
+                st.markdown("<div class='panel'>", unsafe_allow_html=True)
+                st.markdown("<div class='panel-kicker'>YOLOv8 Live CV Stream</div><div class='panel-title'>Main Entrance <span class='muted'>(CAM_1)</span></div>", unsafe_allow_html=True)
+                cv_cols = st.columns([0.72, 0.28])
+                with cv_cols[0]:
+                    camera_preview(metrics)
+                with cv_cols[1]:
+                    model_telemetry(speed)
+                camera_cards()
+                st.markdown("<div class='footnote'>Synthetic frames with bounding boxes, zone polygons and HUD. Drop licensed clips into data/clips to switch to real CCTV processing.</div>", unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
 
                 st.subheader("Customer Funnel")
                 st.markdown("<div class='hero'>", unsafe_allow_html=True)
@@ -485,8 +739,7 @@ def main() -> None:
                     )
 
             with right:
-                st.subheader("Queue Depth")
-                st.line_chart(pd.DataFrame({"queue_depth": metrics.get("queue_series", [metrics["billing_queue_joins"]])}), height=220)
+                queue_panel(metrics)
 
                 st.subheader("Zone Intelligence")
                 dwell_rows = [
