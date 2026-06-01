@@ -1,0 +1,16 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      STORE_INTEL_EVENT_PATH: /app/data/events.jsonl
+      STORE_INTEL_POS_PATH: /app/data/pos_transactions.csv
+      STORE_INTEL_LAYOUT_PATH: /app/data/store_layout.json
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3

@@ -1,0 +1,46 @@
+{
+  "store_id": "STORE_BLR_002",
+  "source_store_name": "Brigade_Bangalore",
+  "cameras": {
+    "CAM_1": {
+      "role": "floor_skincare",
+      "zones": [
+        {"zone_id": "SKINCARE", "sku_zone": "SKINCARE", "polygon": [[40, 120], [1550, 120], [1510, 780], [120, 940]]},
+        {"zone_id": "CENTER_DISPLAY", "sku_zone": "PROMO_DISPLAY", "polygon": [[620, 720], [1260, 690], [1430, 1040], [520, 1060]]}
+      ]
+    },
+    "CAM_2": {
+      "role": "floor_makeup",
+      "zones": [
+        {"zone_id": "MAKEUP", "sku_zone": "MAKEUP", "polygon": [[560, 150], [1860, 130], [1800, 980], [700, 1010]]},
+        {"zone_id": "CENTER_DISPLAY", "sku_zone": "PROMO_DISPLAY", "polygon": [[280, 660], [900, 700], [850, 1040], [300, 1030]]}
+      ]
+    },
+    "CAM_3": {
+      "role": "entry_exit",
+      "entry_line_y": 520,
+      "entry_inside_is_lower_y": true,
+      "zones": [
+        {"zone_id": "ENTRY_THRESHOLD", "sku_zone": "ENTRY", "polygon": [[520, 150], [1320, 150], [1340, 760], [470, 800]]}
+      ]
+    },
+    "CAM_4": {
+      "role": "stock_room",
+      "zones": [
+        {"zone_id": "STAFF_ONLY", "sku_zone": "BACKROOM", "polygon": [[0, 0], [1920, 0], [1920, 1080], [0, 1080]]}
+      ]
+    },
+    "CAM_5": {
+      "role": "billing",
+      "zones": [
+        {"zone_id": "BILLING", "sku_zone": "CHECKOUT", "polygon": [[260, 260], [1120, 240], [1100, 1040], [260, 1040]]},
+        {"zone_id": "FRAGRANCE", "sku_zone": "FRAGRANCE", "polygon": [[1220, 0], [1920, 0], [1920, 1080], [1180, 1080]]}
+      ]
+    }
+  },
+  "assumptions": [
+    "Polygons are calibrated from sampled frames rather than from an exported CAD layout.",
+    "Black store uniforms and CAM_4 stock-room detections are treated as staff-biased signals.",
+    "CAM_3 is the source of truth for ENTRY, EXIT and REENTRY events."
+  ]
+}

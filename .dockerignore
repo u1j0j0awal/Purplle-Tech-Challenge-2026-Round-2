@@ -1,0 +1,14 @@
+__pycache__/
+.pytest_cache/
+.venv/
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.pt
+data/*.jsonl
+data/*.csv
+data/*.xlsx
+data/*.pdf
+data/*.txt
+runs/
