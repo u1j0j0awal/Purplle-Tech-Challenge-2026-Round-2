@@ -66,6 +66,10 @@ The dashboard auto-refreshes visitors, purchases, conversion rate, revenue, dwel
 pytest --cov=app --cov=pipeline
 ```
 
+## Streamlit Cloud
+
+`requirements.txt` is intentionally lightweight for Streamlit Community Cloud. The full API/CV dependency set lives in `requirements-api.txt` and is used by Docker.
+
 ## Repository Layout
 
 - `pipeline/`: YOLO person detection, lightweight tracking, zone/event emission.
