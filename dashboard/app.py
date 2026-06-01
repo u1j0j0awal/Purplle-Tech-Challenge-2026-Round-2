@@ -139,6 +139,34 @@ def css() -> None:
             margin: 4px 4px 0 0;
             font-size: 12px;
         }
+        .sim-strip {
+            border: 1px solid #3a4454;
+            border-radius: 8px;
+            padding: 14px 16px;
+            background: #10151e;
+            margin: 16px 0 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .sim-btn {
+            display: inline-block;
+            border: 1px solid #3a4454;
+            border-radius: 6px;
+            padding: 6px 11px;
+            margin-left: 6px;
+            background: #171d27;
+        }
+        .sim-btn-active {
+            border-color: #1faa8a;
+            background: #1f8a70;
+        }
+        .source-note {
+            color: #b7c4d8;
+            font-size: 13px;
+            margin-top: 4px;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -222,6 +250,25 @@ def standalone_demo() -> tuple[dict, dict, dict, dict, list[dict]]:
     health = {"event_count": len(events), "pos_loaded": 24}
     anomalies = {"anomalies": [], "count": 0}
     return health, metrics, funnel, anomalies, events
+
+
+def presentation_strip(using_api: bool, speed: str) -> None:
+    source = "API + generated demo telemetry" if using_api else "Standalone generated telemetry"
+    st.markdown(
+        f"""
+        <div class="sim-strip">
+            <div>
+                <b>Simulation:</b> running @ {speed}
+                <span class="sim-btn">1x</span>
+                <span class="sim-btn sim-btn-active">{speed}</span>
+                <span class="sim-btn">5x</span>
+                <span class="source-note">source: {source}</span>
+            </div>
+            <div><span class="pill">READY FOR DEMO</span></div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def event_ticker(events: list[dict]) -> None:
@@ -344,6 +391,8 @@ def main() -> None:
     store = st.sidebar.text_input("Store", DEFAULT_STORE)
     refresh = st.sidebar.slider("Refresh seconds", 2, 30, 8)
     auto_refresh = st.sidebar.toggle("Auto refresh", value=True)
+    presentation_mode = st.sidebar.toggle("Presentation mode", value=True)
+    speed = st.sidebar.selectbox("Simulation speed", ["1x", "2x", "5x"], index=1)
 
     st.sidebar.divider()
     if st.sidebar.button("Seed demo events", use_container_width=True):
@@ -357,28 +406,41 @@ def main() -> None:
 
     while True:
         using_standalone = False
-        try:
-            health = get_json(f"{api}/health")
-            metrics = get_json(f"{api}/stores/{store}/metrics")
-            funnel = get_json(f"{api}/stores/{store}/funnel")
-            anomalies = get_json(f"{api}/stores/{store}/anomalies")
-            events = get_json(f"{api}/events?store_id={store}&limit=60")["events"]
-        except requests.RequestException as exc:
+        api_health: dict | None = None
+        if presentation_mode:
             using_standalone = True
             health, metrics, funnel, anomalies, events = standalone_demo()
+            try:
+                api_health = get_json(f"{api}/health")
+            except requests.RequestException:
+                api_health = None
+        else:
+            try:
+                health = get_json(f"{api}/health")
+                api_health = health
+                metrics = get_json(f"{api}/stores/{store}/metrics")
+                funnel = get_json(f"{api}/stores/{store}/funnel")
+                anomalies = get_json(f"{api}/stores/{store}/anomalies")
+                events = get_json(f"{api}/events?store_id={store}&limit=60")["events"]
+            except requests.RequestException:
+                using_standalone = True
+                health, metrics, funnel, anomalies, events = standalone_demo()
 
         with placeholder.container():
             top = st.columns([0.74, 0.26])
             with top[0]:
                 st.title("Store Intelligence")
                 st.markdown(
-                    "<span class='muted'>Real-time CCTV events + POS correlation for offline conversion intelligence.</span>",
+                    "<span class='muted'>Real-time analytics for offline retail: CCTV events, POS correlation, queues, funnel, and anomalies.</span>",
                     unsafe_allow_html=True,
                 )
             with top[1]:
-                label = "STANDALONE DEMO" if using_standalone else "LIVE API CONNECTED"
+                label = "PRESENTATION SIM" if presentation_mode else ("STANDALONE DEMO" if using_standalone else "LIVE API CONNECTED")
                 st.markdown(f"<span class='pill'>{label}</span>", unsafe_allow_html=True)
-                st.caption(f"{health['event_count']} events loaded | {health['pos_loaded']} POS transactions")
+                api_text = "API ok" if api_health else "API optional"
+                st.caption(f"{health['event_count']} events loaded | {health['pos_loaded']} POS transactions | {api_text}")
+
+            presentation_strip(bool(api_health), speed)
 
             if "queue_series" not in metrics:
                 current_queue = metrics.get("billing_queue_joins", 0)
@@ -390,11 +452,11 @@ def main() -> None:
 
             st.write("")
             kpi = st.columns(5)
-            kpi[0].metric("Visitors", metrics["unique_visitors"])
-            kpi[1].metric("Purchases", metrics["purchases"])
-            kpi[2].metric("Conversion", f"{metrics['conversion_rate'] * 100:.1f}%")
-            kpi[3].metric("Revenue", f"INR {metrics['revenue_inr']:,.0f}")
-            kpi[4].metric("Queue depth", metrics.get("queue_now", metrics["billing_queue_joins"]))
+            kpi[0].metric("Unique visitors", metrics["unique_visitors"])
+            kpi[1].metric("Conversion rate", f"{metrics['conversion_rate'] * 100:.1f}%")
+            kpi[2].metric("Queue depth now", metrics.get("queue_now", metrics["billing_queue_joins"]))
+            kpi[3].metric("Abandonment", f"{metrics.get('abandonment_rate', 0) * 100:.1f}%")
+            kpi[4].metric("Revenue", f"INR {metrics['revenue_inr']:,.0f}")
 
             left, right = st.columns([0.58, 0.42])
             with left:
