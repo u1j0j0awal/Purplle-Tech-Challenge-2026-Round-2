@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import time
 from pathlib import Path
 from datetime import datetime, timezone
@@ -20,7 +21,7 @@ def css() -> None:
     st.markdown(
         """
         <style>
-        .block-container {padding-top: 1.4rem; max-width: 1440px;}
+        .block-container {padding-top: 1.1rem; max-width: 1480px;}
         h1 {font-size: 2.7rem !important; line-height: 1.1;}
         h2, h3 {letter-spacing: 0;}
         [data-testid="stMetric"] {
@@ -65,6 +66,79 @@ def css() -> None:
             background: #111720;
             min-height: 108px;
         }
+        .control-strip {
+            border: 1px solid #3a4454;
+            border-radius: 8px;
+            padding: 14px 16px;
+            background: #10151e;
+            margin: 18px 0;
+        }
+        .camera-box {
+            height: 330px;
+            border: 1px solid #3a4454;
+            border-radius: 8px;
+            background:
+                linear-gradient(90deg, rgba(87,199,255,.14) 1px, transparent 1px),
+                linear-gradient(rgba(126,227,155,.10) 1px, transparent 1px),
+                #030506;
+            background-size: 48px 48px;
+            position: relative;
+            overflow: hidden;
+        }
+        .person {
+            position: absolute;
+            width: 54px;
+            height: 92px;
+            border: 2px solid #57c7ff;
+            border-radius: 8px;
+            color: #d9f7ff;
+            font-size: 12px;
+            padding: 4px;
+            background: rgba(87,199,255,.12);
+        }
+        .threshold {
+            position: absolute;
+            left: 9%;
+            right: 9%;
+            top: 62%;
+            border-top: 2px dashed #7ee39b;
+        }
+        .zone-card {
+            border-radius: 8px;
+            padding: 14px 16px;
+            min-height: 116px;
+            border: 1px solid rgba(255,255,255,.16);
+        }
+        .ticker {
+            height: 270px;
+            overflow: hidden;
+            border: 1px solid #2b3545;
+            border-radius: 8px;
+            padding: 12px 14px;
+            background: #080c12;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.65;
+        }
+        .event-entry {color: #7ee39b;}
+        .event-exit {color: #ffce57;}
+        .event-zone {color: #57c7ff;}
+        .event-bill {color: #ff9f57;}
+        .timeline {
+            border: 1px solid #2b3545;
+            border-radius: 8px;
+            padding: 12px 14px;
+            background: #111720;
+            margin-bottom: 10px;
+        }
+        .chip {
+            display: inline-block;
+            border: 1px solid #3a4454;
+            border-radius: 5px;
+            padding: 3px 8px;
+            margin: 4px 4px 0 0;
+            font-size: 12px;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -78,6 +152,21 @@ def get_json(url: str) -> dict:
 
 
 def standalone_demo() -> tuple[dict, dict, dict, dict, list[dict]]:
+    tick = int(time.time() / 3)
+    visitors = 54 + (tick % 18)
+    billing = max(3, int(visitors * 0.74))
+    purchases = max(2, billing - (tick % 4))
+    conversion = purchases / visitors
+    queue_now = 3 + (tick % 4)
+    zones = ["MAKEUP", "SKINCARE", "FRAGRANCE", "HAIRCARE", "BODYCARE", "MOISTURISER"]
+    heatmap = {
+        zone: {
+            "score": 58 + ((tick * 7 + idx * 11) % 42),
+            "visits": 12 + ((tick + idx * 3) % 25),
+            "dwell_seconds": 8 + ((tick + idx * 2) % 11),
+        }
+        for idx, zone in enumerate(zones)
+    }
     events = [
         {"timestamp": "2026-04-10T12:15:00Z", "camera_id": "CAM_3", "visitor_id": "VIS_DEMO_001", "event_type": "ENTRY", "zone_id": None, "confidence": 0.91, "is_staff": False},
         {"timestamp": "2026-04-10T12:16:30Z", "camera_id": "CAM_2", "visitor_id": "VIS_DEMO_001", "event_type": "ZONE_ENTER", "zone_id": "MAKEUP", "confidence": 0.88, "is_staff": False},
@@ -90,28 +179,121 @@ def standalone_demo() -> tuple[dict, dict, dict, dict, list[dict]]:
         {"timestamp": "2026-04-10T12:45:00Z", "camera_id": "CAM_3", "visitor_id": "VIS_DEMO_002", "event_type": "EXIT", "zone_id": None, "confidence": 0.74, "is_staff": False},
         {"timestamp": "2026-04-10T12:46:00Z", "camera_id": "CAM_3", "visitor_id": "VIS_DEMO_002", "event_type": "REENTRY", "zone_id": None, "confidence": 0.71, "is_staff": False},
     ]
+    synthetic_events = []
+    event_types = ["ENTRY", "ZONE_ENTER", "ZONE_DWELL", "BILLING_QUEUE_JOIN", "EXIT"]
+    for idx in range(42):
+        kind = event_types[(tick + idx) % len(event_types)]
+        zone = None if kind in {"ENTRY", "EXIT"} else zones[(tick + idx) % len(zones)]
+        synthetic_events.append(
+            {
+                "timestamp": pd.Timestamp.now(tz="UTC").floor("s") - pd.Timedelta(seconds=idx * 7),
+                "camera_id": "CAM_ENTRY_01" if kind in {"ENTRY", "EXIT"} else "CAM_FLOOR_01",
+                "visitor_id": f"VIS_sim{1000 + tick % 40 + idx:04d}",
+                "event_type": kind,
+                "zone_id": zone,
+                "confidence": round(0.72 + ((idx % 11) / 50), 2),
+                "is_staff": False,
+            }
+        )
+    events = synthetic_events + events
     metrics = {
-        "unique_visitors": 2,
-        "purchases": 2,
-        "conversion_rate": 1.0,
-        "revenue_inr": 9491.21,
-        "billing_queue_joins": 2,
-        "avg_confidence": 0.808,
-        "reentries": 1,
-        "zone_dwell_ms": {"MAKEUP": 30000, "BILLING": 0, "SKINCARE": 0},
-        "zone_unique_visitors": {"MAKEUP": 1, "BILLING": 2, "SKINCARE": 1},
+        "unique_visitors": visitors,
+        "purchases": purchases,
+        "conversion_rate": conversion,
+        "revenue_inr": purchases * 1240,
+        "billing_queue_joins": billing,
+        "avg_confidence": 0.82,
+        "reentries": 3 + (tick % 5),
+        "queue_now": queue_now,
+        "abandonment_rate": max(0, (billing - purchases) / max(billing, 1)),
+        "queue_series": [max(0, queue_now + int(math.sin((tick + i) / 2) * 2) - 1) for i in range(28)],
+        "heatmap": heatmap,
+        "zone_dwell_ms": {zone: heatmap[zone]["dwell_seconds"] * 1000 for zone in zones},
+        "zone_unique_visitors": {zone: heatmap[zone]["visits"] for zone in zones},
     }
     funnel = {
         "stages": [
-            {"stage": "entry", "visitors": 2},
-            {"stage": "browse", "visitors": 2},
-            {"stage": "billing_intent", "visitors": 2},
-            {"stage": "purchase", "visitors": 2},
+            {"stage": "entry", "visitors": visitors},
+            {"stage": "browse", "visitors": visitors},
+            {"stage": "billing_intent", "visitors": billing},
+            {"stage": "purchase", "visitors": purchases},
         ]
     }
-    health = {"event_count": 10, "pos_loaded": 24}
+    health = {"event_count": len(events), "pos_loaded": 24}
     anomalies = {"anomalies": [], "count": 0}
     return health, metrics, funnel, anomalies, events
+
+
+def event_ticker(events: list[dict]) -> None:
+    rows = []
+    for event in events[:18]:
+        kind = str(event["event_type"])
+        klass = "event-zone"
+        if "ENTRY" in kind:
+            klass = "event-entry"
+        if "EXIT" in kind:
+            klass = "event-exit"
+        if "BILLING" in kind:
+            klass = "event-bill"
+        ts = str(event["timestamp"])[11:19]
+        zone = f" @{event['zone_id']}" if event.get("zone_id") else ""
+        rows.append(
+            f"<div>{ts} <span class='{klass}'>{kind}</span> {event['visitor_id']}{zone} [{event['camera_id']}]</div>"
+        )
+    st.markdown(f"<div class='ticker'>{''.join(rows)}</div>", unsafe_allow_html=True)
+
+
+def camera_preview(metrics: dict) -> None:
+    tick = int(time.time() / 3)
+    people = []
+    for idx in range(5):
+        x = 12 + ((tick * (idx + 2) + idx * 17) % 70)
+        y = 15 + ((tick * (idx + 3) + idx * 11) % 58)
+        people.append(f"<div class='person' style='left:{x}%; top:{y}%;'>VIS<br>{idx + 1}</div>")
+    st.markdown(
+        f"""
+        <div class="camera-box">
+            <div style="position:absolute;left:16px;top:14px;color:#e7f3ff;font-weight:700;">CAM_ENTRY_01</div>
+            <div style="position:absolute;right:16px;top:14px;color:#7ee39b;">LIVE SYNTHETIC CV</div>
+            <div class="threshold"></div>
+            {''.join(people)}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def heatmap_grid(metrics: dict) -> None:
+    heatmap = metrics.get("heatmap", {})
+    if not heatmap:
+        return
+    cols = st.columns(3)
+    for idx, (zone, data) in enumerate(heatmap.items()):
+        score = int(data["score"])
+        color = "#1f8a70" if score < 75 else "#a5521d" if score < 90 else "#9f1d24"
+        with cols[idx % 3]:
+            st.markdown(
+                f"""
+                <div class="zone-card" style="background:{color};">
+                    <div class="muted">{zone}</div>
+                    <h2>{score}</h2>
+                    <div>visits {data["visits"]} - dwell {data["dwell_seconds"]}s</div>
+                    <span class="chip">LOW CONFIDENCE</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+
+def visitor_timelines(events: list[dict]) -> None:
+    visitors: dict[str, list[str]] = {}
+    for event in events:
+        visitors.setdefault(event["visitor_id"], [])
+        if len(visitors[event["visitor_id"]]) < 4:
+            visitors[event["visitor_id"]].append(event["event_type"])
+    for visitor, kinds in list(visitors.items())[:4]:
+        chips = "".join(f"<span class='chip'>{kind}</span>" for kind in kinds)
+        st.markdown(f"<div class='timeline'><b>{visitor}</b><br>{chips}</div>", unsafe_allow_html=True)
 
 
 def post_events(api: str, path: Path) -> dict:
@@ -192,14 +374,20 @@ def main() -> None:
             kpi[1].metric("Purchases", metrics["purchases"])
             kpi[2].metric("Conversion", f"{metrics['conversion_rate'] * 100:.1f}%")
             kpi[3].metric("Revenue", f"INR {metrics['revenue_inr']:,.0f}")
-            kpi[4].metric("Queue joins", metrics["billing_queue_joins"])
+            kpi[4].metric("Queue depth", metrics.get("queue_now", metrics["billing_queue_joins"]))
 
             left, right = st.columns([0.58, 0.42])
             with left:
+                st.subheader("YOLOv8 Live CV Stream")
+                camera_preview(metrics)
+
                 st.subheader("Customer Funnel")
                 st.markdown("<div class='hero'>", unsafe_allow_html=True)
                 funnel_progress(funnel["stages"])
                 st.markdown("</div>", unsafe_allow_html=True)
+
+                st.subheader("Zone Heatmap")
+                heatmap_grid(metrics)
 
                 st.subheader("Live Event Stream")
                 event_df = pd.DataFrame(events)
@@ -215,6 +403,9 @@ def main() -> None:
                     )
 
             with right:
+                st.subheader("Queue Depth")
+                st.line_chart(pd.DataFrame({"queue_depth": metrics.get("queue_series", [metrics["billing_queue_joins"]])}), height=220)
+
                 st.subheader("Zone Intelligence")
                 dwell_rows = [
                     {
@@ -258,6 +449,12 @@ def main() -> None:
                     st.dataframe(pd.DataFrame(anomalies["anomalies"]), use_container_width=True, hide_index=True)
                 else:
                     st.success("No active operational anomalies.")
+
+                st.subheader("Live Event Ticker")
+                event_ticker(events)
+
+                st.subheader("Visitor Timelines")
+                visitor_timelines(events)
 
             st.caption(f"Last refreshed at {pd.Timestamp.now().strftime('%H:%M:%S')}")
 
